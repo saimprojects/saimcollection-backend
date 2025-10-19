@@ -1,7 +1,8 @@
 import os
 from datetime import timedelta
 from pathlib import Path
-
+from decouple import config
+import dj_database_url
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -64,14 +65,7 @@ WSGI_APPLICATION = "core.wsgi.application"
 ASGI_APPLICATION = "core.asgi.application"
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB"),
-        "USER": os.getenv("POSTGRES_USER"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": os.getenv("POSTGRES_HOST", "db"),
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),
-    }
+    'default': dj_database_url.parse(config('DATABASE_URL'))
 }
 
 AUTH_USER_MODEL = "users.User"
