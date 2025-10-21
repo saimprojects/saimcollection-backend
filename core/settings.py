@@ -5,11 +5,12 @@ from decouple import config
 import dj_database_url
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ---- Core settings ----
+# ---- Core Settings ----
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in {"1", "true", "yes"}
 ALLOWED_HOSTS = os.getenv(
@@ -40,7 +41,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # for static on Railway
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # for static files on Railway
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -114,12 +115,18 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # ---- Media (Cloudinary) ----
 MEDIA_URL = "/media/"
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-# no need for manual CLOUDINARY_STORAGE dict – cloudinary lib reads CLOUDINARY_URL automatically
+# CLOUDINARY_URL automatically read from env (no need for manual config)
 
 # ---- CORS ----
 CORS_ALLOWED_ORIGINS = os.getenv(
     "CORS_ALLOWED_ORIGINS", "http://localhost:5173"
 ).split(",")
+
+# ---- CSRF ----
+_raw_csrf = os.getenv(
+    "CSRF_TRUSTED_ORIGINS", "https://*.railway.app"
+)
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _raw_csrf.split(",") if o.strip()]
 
 # ---- Security ----
 SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "False").lower() in {
@@ -127,16 +134,6 @@ SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "False").lower() in {
     "true",
     "yes",
 }
-
-if not DEBUG:
-    CSRF_TRUSTED_ORIGINS = [
-        "https://*.railway.app",
-        *[
-            f"https://{h.strip()}"
-            for h in ALLOWED_HOSTS
-            if h and not h.startswith("localhost")
-        ],
-    ]
 
 # ---- Email ----
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
