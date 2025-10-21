@@ -5,7 +5,7 @@ from decouple import config
 import dj_database_url
 from dotenv import load_dotenv
 
-# Load environment variables
+# ---- Load environment variables ----
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -13,9 +13,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ---- Core Settings ----
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in {"1", "true", "yes"}
+
 ALLOWED_HOSTS = os.getenv(
-    "DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,.railway.app"
+    "DJANGO_ALLOWED_HOSTS",
+    "localhost,127.0.0.1,.railway.app"
 ).split(",")
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip() for origin in os.getenv(
+        "CSRF_TRUSTED_ORIGINS",
+        "https://web-production-985a.up.railway.app,https://*.railway.app"
+    ).split(",")
+    if origin.strip()
+]
 
 # ---- Installed Apps ----
 INSTALLED_APPS = [
@@ -41,7 +51,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # for static files on Railway
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -79,16 +89,15 @@ DATABASES = {
     )
 }
 
-# ---- Auth & JWT ----
+# ---- Authentication ----
 AUTH_USER_MODEL = "users.User"
 
+# ---- REST Framework ----
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    "DEFAULT_THROTTLE_RATES": {
-        "otp": "5/minute",
-    },
+    "DEFAULT_THROTTLE_RATES": {"otp": "5/minute"},
 }
 
 SIMPLE_JWT = {
@@ -115,32 +124,29 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # ---- Media (Cloudinary) ----
 MEDIA_URL = "/media/"
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-# CLOUDINARY_URL automatically read from env (no need for manual config)
 
 # ---- CORS ----
 CORS_ALLOWED_ORIGINS = os.getenv(
-    "CORS_ALLOWED_ORIGINS", "http://localhost:5173"
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:5173,https://web-production-985a.up.railway.app"
 ).split(",")
 
-# ---- CSRF ----
-_raw_csrf = os.getenv(
-    "CSRF_TRUSTED_ORIGINS", "https://*.railway.app"
-)
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in _raw_csrf.split(",") if o.strip()]
+CORS_ALLOW_CREDENTIALS = True
 
 # ---- Security ----
-SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "False").lower() in {
-    "1",
-    "true",
-    "yes",
-}
+# Disable forced HTTPS redirect to prevent loop on Railway
+SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "False").lower() in {"1", "true", "yes"}
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ---- Email ----
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
-EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.getenv("EMAIL_HOST", "")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() in {"1", "true", "yes"}
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
@@ -152,4 +158,5 @@ JAZZMIN_SETTINGS = {
     "show_ui_builder": False,
 }
 
+# ---- Auto Field ----
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
