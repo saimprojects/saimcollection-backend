@@ -1,7 +1,6 @@
 import os
 from datetime import timedelta
 from pathlib import Path
-from decouple import config
 import dj_database_url
 from dotenv import load_dotenv
 
@@ -11,7 +10,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ---- Core Settings ----
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in {"1", "true", "yes"}
 
 ALLOWED_HOSTS = os.getenv(
@@ -23,8 +22,7 @@ CSRF_TRUSTED_ORIGINS = [
     origin.strip() for origin in os.getenv(
         "CSRF_TRUSTED_ORIGINS",
         "https://web-production-985a.up.railway.app,https://*.railway.app"
-    ).split(",")
-    if origin.strip()
+    ).split(",") if origin.strip()
 ]
 
 # ---- Installed Apps ----
@@ -85,7 +83,8 @@ ASGI_APPLICATION = "core.asgi.application"
 # ---- Database ----
 DATABASES = {
     "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600
     )
 }
 
@@ -101,12 +100,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(
-        minutes=int(os.getenv("JWT_ACCESS_TOKEN_LIFETIME_MINUTES", "30"))
-    ),
-    "REFRESH_TOKEN_LIFETIME": timedelta(
-        days=int(os.getenv("JWT_REFRESH_TOKEN_LIFETIME_DAYS", "7"))
-    ),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(os.getenv("JWT_ACCESS_TOKEN_LIFETIME_MINUTES", "30"))),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.getenv("JWT_REFRESH_TOKEN_LIFETIME_DAYS", "7"))),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
@@ -126,20 +121,18 @@ MEDIA_URL = "/media/"
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # ---- CORS ----
-CORS_ALLOWED_ORIGINS = os.getenv(
-    "CORS_ALLOWED_ORIGINS",
-    "http://localhost:5173,https://web-production-985a.up.railway.app"
-).split(",")
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://web-production-985a.up.railway.app",
+]
 CORS_ALLOW_CREDENTIALS = True
 
-# ---- Security ----
-# Disable forced HTTPS redirect to prevent loop on Railway
+# ---- Security (Railway Safe) ----
 SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "False").lower() in {"1", "true", "yes"}
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
+CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
 USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # ---- Email ----
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
@@ -160,3 +153,16 @@ JAZZMIN_SETTINGS = {
 
 # ---- Auto Field ----
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ---- Logging (to debug 500 errors) ----
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG" if DEBUG else "WARNING",
+    },
+}
