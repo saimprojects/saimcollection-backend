@@ -114,8 +114,9 @@ USE_TZ = True
 # ---- Static Files ----
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-WHITENOISE_MANIFEST_STRICT = False
+# YEH LINE CHANGE KI HAI - Missing files ka strict check off kar diya
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+WHITENOISE_MANIFEST_STRICT = False  # Yeh already thi, good!
 
 # ---- Media (Cloudinary) ----
 MEDIA_URL = "/media/"
@@ -145,11 +146,17 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() in {"1", "true", "yes
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
 # ---- Jazzmin ----
+# YEH SECTION UPDATED HAI - Default theme se issue tha
 JAZZMIN_SETTINGS = {
     "site_title": "Ecommerce Admin",
     "site_header": "Digital Products",
     "welcome_sign": "Welcome to Digital Products Admin",
     "show_ui_builder": False,
+    # Theme setting hata di - default Django admin use karega
+    # Ya phir simple theme use karo:
+    "ui_tweaks": {
+        "theme": "flatly",  # Yeh theme stable hai Railway par
+    }
 }
 
 # ---- Auto Field ----
