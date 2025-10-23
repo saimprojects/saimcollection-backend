@@ -114,9 +114,21 @@ USE_TZ = True
 # ---- Static Files ----
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-# YEH LINE CHANGE KI HAI - Missing files ka strict check off kar diya
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
-WHITENOISE_MANIFEST_STRICT = False  # Yeh already thi, good!
+
+# Railway ke liye simple storage without compression
+if not DEBUG:
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+else:
+    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+
+# WhiteNoise settings - Railway friendly
+WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_AUTOREFRESH = True
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_MIMETYPES = {
+    '.css': 'text/css',
+    '.js': 'application/javascript',
+}
 
 # ---- Media (Cloudinary) ----
 MEDIA_URL = "/media/"
@@ -146,16 +158,38 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() in {"1", "true", "yes
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
 # ---- Jazzmin ----
-# DISABLED - Using default Django admin due to Railway static file issues
-# JAZZMIN_SETTINGS = {
-#     "site_title": "Ecommerce Admin",
-#     "site_header": "Digital Products",
-#     "welcome_sign": "Welcome to Digital Products Admin",
-#     "show_ui_builder": False,
-#     "ui_tweaks": {
-#         "theme": "flatly",
-#     }
-# }
+JAZZMIN_SETTINGS = {
+    "site_title": "Ecommerce Admin",
+    "site_header": "Digital Products",
+    "welcome_sign": "Welcome to Digital Products Admin",
+    "show_ui_builder": False,
+    # Railway-friendly settings
+    "use_google_fonts_cdn": True,
+    "related_modal_active": False,
+}
+
+# Simple UI tweaks without custom themes
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": False,
+    "accent": "accent-primary",
+    "navbar": "navbar-white navbar-light",
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": False,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+}
 
 # ---- Auto Field ----
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
