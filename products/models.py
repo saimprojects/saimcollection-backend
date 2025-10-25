@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
-from django.utils import timezone
 import uuid
+from cloudinary.models import CloudinaryField
 
 
 class Product(models.Model):
@@ -11,7 +11,7 @@ class Product(models.Model):
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     external_link = models.URLField(blank=True)
-    file = models.FileField(upload_to="products/", blank=True)
+    file = CloudinaryField("product_file", folder="products", blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
