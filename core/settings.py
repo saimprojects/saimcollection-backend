@@ -3,6 +3,9 @@ from datetime import timedelta
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 # ---- Load environment variables ----
 load_dotenv()
@@ -115,13 +118,11 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Railway ke liye simple storage without compression
 if not DEBUG:
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 else:
     STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 
-# WhiteNoise settings - Railway friendly
 WHITENOISE_MANIFEST_STRICT = False
 WHITENOISE_AUTOREFRESH = True
 WHITENOISE_USE_FINDERS = True
@@ -130,7 +131,11 @@ WHITENOISE_MIMETYPES = {
     '.js': 'application/javascript',
 }
 
-# ---- Media (Cloudinary) ----
+# ---- Cloudinary ----
+cloudinary.config(
+    secure=True
+)
+
 MEDIA_URL = "/media/"
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
@@ -141,7 +146,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-# ---- Security (Railway Safe) ----
+# ---- Security ----
 SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "False").lower() in {"1", "true", "yes"}
 SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
 CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
@@ -163,12 +168,10 @@ JAZZMIN_SETTINGS = {
     "site_header": "Digital Products",
     "welcome_sign": "Welcome to Digital Products Admin",
     "show_ui_builder": False,
-    # Railway-friendly settings
     "use_google_fonts_cdn": True,
     "related_modal_active": False,
 }
 
-# Simple UI tweaks without custom themes
 JAZZMIN_UI_TWEAKS = {
     "navbar_small_text": False,
     "footer_small_text": False,
@@ -194,7 +197,7 @@ JAZZMIN_UI_TWEAKS = {
 # ---- Auto Field ----
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ---- Logging (to debug 500 errors) ----
+# ---- Logging ----
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
