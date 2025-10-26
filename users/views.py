@@ -1,4 +1,3 @@
-import os
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.shortcuts import get_object_or_404
@@ -11,6 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import SignupRequestSerializer, OTPVerifySerializer, SetPasswordSerializer, LoginSerializer
 from .throttles import OTPThrottle
 from .models import EmailLog, User
+from django.conf import settings
 
 
 class SignupRequestOTPView(APIView):
@@ -23,9 +23,9 @@ class SignupRequestOTPView(APIView):
         otp_obj = serializer.save()
 
         subject = "Your OTP Code"
-        body = f"Your verification code is {otp_obj.code}. It expires in {os.getenv('OTP_EXPIRY_MINUTES', '5')} minutes."
+        body = f"Your verification code is {otp_obj.code}. It expires in 5 minutes."
         try:
-            send_mail(subject, body, os.getenv("DEFAULT_FROM_EMAIL", "noreply@example.com"), [otp_obj.email])
+            send_mail(subject, body, settings.EMAIL_HOST_USER, [otp_obj.email])
             EmailLog.objects.create(to_email=otp_obj.email, subject=subject, body=body, success=True)
         except Exception as e:
             EmailLog.objects.create(to_email=otp_obj.email, subject=subject, body=body, success=False, error=str(e))
@@ -78,7 +78,7 @@ class PasswordResetRequestView(APIView):
         subject = "Password Reset"
         body = f"Click the link to reset your password: {reset_link}"
         try:
-            send_mail(subject, body, os.getenv("DEFAULT_FROM_EMAIL", "noreply@example.com"), [email])
+            send_mail(subject, body, settings.EMAIL_HOST_USER, [email])
             EmailLog.objects.create(to_email=email, subject=subject, body=body, success=True)
         except Exception as e:
             EmailLog.objects.create(to_email=email, subject=subject, body=body, success=False, error=str(e))
