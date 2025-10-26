@@ -32,7 +32,10 @@ class UserOrdersView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Order.objects.filter(user_id=self.kwargs['user_id']).order_by('-created_at')
+        user_id = self.kwargs.get('user_id')
+        if not user_id:
+            return Order.objects.none()
+        return Order.objects.filter(user_id=user_id).order_by('-created_at')
 
 
 # -----------------------------
@@ -43,13 +46,16 @@ class CreateOrderView(generics.CreateAPIView):
     serializer_class = CreateOrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
 
 class MyOrdersView(generics.ListAPIView):
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user).order_by("-created_at")
+        return Order.objects.filter(user=self.request.user).order_by('-created_at')
 
 
 class DownloadLinkView(APIView):
@@ -57,10 +63,15 @@ class DownloadLinkView(APIView):
 
     def get(self, request, link_id):
         link = get_object_or_404(DownloadLink, id=link_id, order__user=request.user)
+
         if not link.is_valid():
             return Response(
                 {"detail": "Link expired or download limit reached"},
                 status=status.HTTP_410_GONE
             )
+
         link.register_download()
+        if not link.url:
+            return Response({"detail": "Download URL not found"}, status=status.HTTP_404_NOT_FOUND)
+
         return redirect(link.url)

@@ -37,11 +37,15 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def get_download_link(self, obj: Order):
         link = getattr(obj, "download_link", None)
-        if link and link.is_valid() and not link.external_warning:
+        if not link:
+            return None
+
+        if link.is_valid() and not link.external_warning:
+            remaining = max(link.max_downloads - link.download_count, 0)
             return {
                 "id": str(link.id),
                 "expires_at": link.expires_at,
-                "remaining_downloads": link.max_downloads - link.download_count,
+                "remaining_downloads": remaining,
                 "external_warning": link.external_warning,
             }
         return None
@@ -65,4 +69,11 @@ class CreateOrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context["request"].user
+        product = validated_data.get("product")
+
+        # optional: avoid duplicate active orders for same product
+        existing_order = Order.objects.filter(user=user, product=product, status="pending").first()
+        if existing_order:
+            return existing_order
+
         return Order.objects.create(user=user, **validated_data)
