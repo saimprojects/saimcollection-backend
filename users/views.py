@@ -74,7 +74,7 @@ class PasswordResetRequestView(APIView):
         if not user:
             return Response({"detail": "If the email exists, a reset link has been sent."}, status=status.HTTP_200_OK)
         token = PasswordResetTokenGenerator().make_token(user)
-        reset_link = f"http://localhost:5173/forgot-password?email={email}&token={token}"
+        reset_link = f"https://saimcollection-frontend.vercel.app/forgot-password?email={email}&token={token}"
         subject = "Password Reset"
         body = f"Click the link to reset your password: {reset_link}"
         try:
