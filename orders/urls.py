@@ -5,7 +5,8 @@ from .views import (
     UserOrdersView,
     CreateOrderView,
     MyOrdersView,
-    DownloadLinkView
+    DownloadLinkView,
+    SubmitPaymentView
 )
 
 urlpatterns = [
@@ -18,4 +19,6 @@ urlpatterns = [
     path("all/", OrderListCreateView.as_view(), name="order-list-create"),
     path("<int:pk>/", OrderDetailView.as_view(), name="order-detail"),
     path("user/<int:user_id>/", UserOrdersView.as_view(), name="user-orders"),
+        path("<uuid:order_id>/submit-payment/", SubmitPaymentView.as_view(), name="submit_payment"),
+
 ]

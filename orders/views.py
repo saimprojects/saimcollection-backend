@@ -69,3 +69,26 @@ class DownloadLinkView(APIView):
             return Response({"detail": "Download URL not found"}, status=status.HTTP_404_NOT_FOUND)
 
         return redirect(link.url)
+
+
+#------------------------------
+#payment system
+#--------------------------------
+
+# views.py me add karo
+
+class SubmitPaymentView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, order_id):
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+        transaction_id = request.data.get("transaction_id")
+
+        if not transaction_id:
+            return Response({"detail": "Transaction ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        order.transaction_id = transaction_id
+        order.status = Order.STATUS_PENDING  # ya STATUS_APPROVED agar auto approve karna hai
+        order.save()
+
+        return Response({"detail": "Payment submitted successfully!", "id": str(order.id)}, status=status.HTTP_200_OK)
