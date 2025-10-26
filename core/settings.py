@@ -18,14 +18,13 @@ DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in {"1", "true", "yes"}
 
 ALLOWED_HOSTS = os.getenv(
     "DJANGO_ALLOWED_HOSTS",
-    "localhost,127.0.0.1,.railway.app",
-    "https://saimcollection-frontend.vercel.app"
+    "localhost,127.0.0.1,.railway.app,saimcollection-frontend.vercel.app"
 ).split(",")
 
 CSRF_TRUSTED_ORIGINS = [
     origin.strip() for origin in os.getenv(
         "CSRF_TRUSTED_ORIGINS",
-        "https://web-production-985a.up.railway.app,https://*.railway.app"
+        "https://saimcollection-frontend.vercel.app,https://saim-collection.up.railway.app,https://web-production-985a.up.railway.app"
     ).split(",") if origin.strip()
 ]
 
@@ -128,14 +127,12 @@ WHITENOISE_MANIFEST_STRICT = False
 WHITENOISE_AUTOREFRESH = True
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_MIMETYPES = {
-    '.css': 'text/css',
-    '.js': 'application/javascript',
+    ".css": "text/css",
+    ".js": "application/javascript",
 }
 
 # ---- Cloudinary ----
-cloudinary.config(
-    secure=True
-)
+cloudinary.config(secure=True)
 
 MEDIA_URL = "/media/"
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
@@ -143,8 +140,9 @@ DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 # ---- CORS ----
 CORS_ALLOWED_ORIGINS = [
     "https://saimcollection-frontend.vercel.app",
-    "https://web-production-985a.up.railway.app",
+    "https://www.saimcollection-frontend.vercel.app",
 ]
+
 CORS_ALLOW_CREDENTIALS = True
 
 # ---- Security ----
