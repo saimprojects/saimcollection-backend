@@ -17,9 +17,6 @@ class OrderListCreateView(generics.ListCreateAPIView):
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
 
 class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
@@ -45,9 +42,6 @@ class UserOrdersView(generics.ListAPIView):
 class CreateOrderView(generics.CreateAPIView):
     serializer_class = CreateOrderSerializer
     permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
 
 
 class MyOrdersView(generics.ListAPIView):

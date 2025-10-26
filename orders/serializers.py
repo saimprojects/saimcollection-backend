@@ -69,11 +69,11 @@ class CreateOrderSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context["request"].user
-        product = validated_data.get("product")
+        product = validated_data.pop("product")  # pop product to avoid passing twice
 
-        # optional: avoid duplicate active orders for same product
+        # avoid duplicate active orders for same product
         existing_order = Order.objects.filter(user=user, product=product, status="pending").first()
         if existing_order:
             return existing_order
 
-        return Order.objects.create(user=user, **validated_data)
+        return Order.objects.create(user=user, product=product)
