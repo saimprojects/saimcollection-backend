@@ -39,11 +39,6 @@ class UserOrdersView(generics.ListAPIView):
 # User-Specific Views
 # -----------------------------
 
-class CreateOrderView(generics.CreateAPIView):
-    serializer_class = CreateOrderSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-
 class MyOrdersView(generics.ListAPIView):
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -71,11 +66,39 @@ class DownloadLinkView(APIView):
         return redirect(link.url)
 
 
-#------------------------------
-#payment system
-#--------------------------------
+# -----------------------------
+# Order Creation with Payment
+# -----------------------------
 
-# views.py me add karo
+class CreateOrderView(generics.CreateAPIView):
+    serializer_class = CreateOrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        product_id = request.data.get("product_id")
+        transaction_id = request.data.get("transaction_id")
+
+        if not product_id:
+            return Response({"detail": "Product ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if not transaction_id:
+            return Response({"detail": "Transaction ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        product = get_object_or_404(Product, id=product_id)
+
+        order = Order.objects.create(
+            user=request.user,
+            product=product,
+            transaction_id=transaction_id,
+            status=Order.STATUS_PENDING  # ya STATUS_APPROVED agar auto approve karna hai
+        )
+
+        serializer = OrderSerializer(order)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+# -----------------------------
+# Legacy SubmitPaymentView (optional, future use)
+# -----------------------------
 
 class SubmitPaymentView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -88,7 +111,7 @@ class SubmitPaymentView(APIView):
             return Response({"detail": "Transaction ID is required."}, status=status.HTTP_400_BAD_REQUEST)
 
         order.transaction_id = transaction_id
-        order.status = Order.STATUS_PENDING  # ya STATUS_APPROVED agar auto approve karna hai
+        order.status = Order.STATUS_PENDING
         order.save()
 
         return Response({"detail": "Payment submitted successfully!", "id": str(order.id)}, status=status.HTTP_200_OK)
